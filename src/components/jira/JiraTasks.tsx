@@ -1,43 +1,24 @@
 import { IoAddOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
 import { Task } from "../../interfaces";
 import { SingleTask } from "./SingleTask";
-import { useTaskStore } from "../../stores";
 import classNames from "classnames";
-import { useState } from "react";
+import { useJiraTasks } from "../../hooks/useJiraTasks";
 
 interface Props {
   title: string;
-  value: "pending" | "in-progress" | "done";
+  status: "pending" | "in-progress" | "done";
   tasks: Task[];
 }
 
-export const JiraTasks = ({ title, tasks, value }: Props) => {
-  const isDragging = useTaskStore((state) => Boolean(state.draggingTaskId));
-  const onTaskDropped = useTaskStore((state) => state.onTaskDropped);
-  const addTask = useTaskStore((state) => state.addTask);
-
-  const [isDraggingOver, SetIsDraggingOver] = useState(false);
-
-  const handleAddTask = () => {
-    addTask("Nueva tarea", "pending");
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    SetIsDraggingOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    SetIsDraggingOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    console.log(`dropping over ${value}`);
-    onTaskDropped(value);
-    SetIsDraggingOver(false);
-  };
+export const JiraTasks = ({ title, tasks, status }: Props) => {
+  const {
+    isDragging,
+    isDraggingOver,
+    handleAddTask,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+  } = useJiraTasks({ status });
 
   return (
     <div

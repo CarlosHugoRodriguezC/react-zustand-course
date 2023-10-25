@@ -1,6 +1,8 @@
 import { StateCreator, create } from "zustand";
 import type { Task, TaskStatus } from "../../interfaces";
-import { devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+// import { produce } from "immer";
 
 interface TasksState {
   tasks: Record<string, Task>;
@@ -37,7 +39,10 @@ const initialTasks: Record<string, Task> = {
   },
 };
 
-const storeApi: StateCreator<TasksState> = (set, get) => ({
+const storeApi: StateCreator<
+  TasksState,
+  [["zustand/devtools", never], ["zustand/immer", never[]]]
+> = (set, get) => ({
   tasks: initialTasks,
   draggingTaskId: undefined,
   getTasksByStatus: (status: TaskStatus) => {
@@ -45,24 +50,40 @@ const storeApi: StateCreator<TasksState> = (set, get) => ({
     return Object.values(tasks).filter((task) => task.status === status);
   },
   addTask: (title: string, status: TaskStatus) => {
-    const tasks = get().tasks;
-    const id = crypto.randomUUID();
     const newTask = {
-      id,
+      id: crypto.randomUUID(),
       title,
       status,
     };
-    tasks[id] = newTask;
-    set({ tasks });
+
+    set((state) => {
+      state.tasks[newTask.id] = newTask;
+    });
+
+    // NOTE:this requires immer intallation
+    // set(
+    //   produce((state: TasksState) => {
+    //     state.tasks[newTask.id] = newTask;
+    //   })
+    // );
+
+    // NOTE: this is the normal way
+    // set((state) => ({ tasks: { ...state.tasks, [newTask.id]: newTask } }));
   },
 
   setDraggingTaskId: (id: string) => set({ draggingTaskId: id }),
   removeDraggingTaskId: () => set({ draggingTaskId: undefined }),
   changeProgress: (taskId: string, status: TaskStatus) => {
-    const tasks = get().tasks;
-    const task = tasks[taskId];
-    task.status = status;
-    set({ tasks });
+    // set((state) => {
+    //   state.tasks[taskId] = { ...state.tasks[taskId], status };
+    // });
+    set((state) => {
+      state.tasks[taskId].status = status;
+    });
+    // const tasks = get().tasks;
+    // const task = tasks[taskId];
+    // task.status = status;
+    // set({ tasks });
   },
   onTaskDropped: (status: TaskStatus) => {
     const taskId = get().draggingTaskId;
@@ -72,4 +93,6 @@ const storeApi: StateCreator<TasksState> = (set, get) => ({
   },
 });
 
-export const useTaskStore = create<TasksState>()(devtools(storeApi));
+export const useTaskStore = create<TasksState>()(
+  devtools(persist(immer(storeApi), { name: "tasks-store" }))
+);
