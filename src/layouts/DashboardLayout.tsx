@@ -1,7 +1,24 @@
-import { SideMenu } from '../components';
-import { Outlet } from 'react-router-dom';
+import { SideMenu } from "../components";
+import { Navigate, Outlet } from "react-router-dom";
+import { AuthStatus, useAuthStore } from "../stores";
 
 export const DashboardLayout = () => {
+  const authStatus = useAuthStore((state) => state.status);
+  const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
+
+  if (authStatus === AuthStatus.Pending) {
+    checkAuthStatus();
+    return (
+      <div className="h-screen flex justify-center items-center text-5xl animate-pulse">
+        Loading...
+      </div>
+    );
+  }
+
+  if (authStatus === AuthStatus.NotAuthenticated) {
+    return <Navigate to="/auth/login" />;
+  }
+
   return (
     <div className="bg-slate-200 overflow-y-scroll w-screen h-screen antialiased text-slate-900 selection:bg-blue-900 selection:text-white">
       <div className="flex flex-row relative w-screen">
@@ -10,9 +27,7 @@ export const DashboardLayout = () => {
         <div className="w-full p-4">
           <Outlet />
         </div>
-
       </div>
-
     </div>
   );
 };

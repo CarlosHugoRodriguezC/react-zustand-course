@@ -1,6 +1,7 @@
 import { StateCreator, create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { logger } from "../middlewares/logger.middleware";
+import { useWeddingBoundStore } from "..";
 
 interface PersonState {
   firstName: string;
@@ -33,3 +34,10 @@ export const usePersonStore = create<PersonState & Actions>()(
     )
   )
 );
+
+usePersonStore.subscribe((next, prev) => {
+  const { firstName, lastName } = next;
+
+  useWeddingBoundStore.getState().setFirstName(firstName);
+  useWeddingBoundStore.getState().setLastName(lastName);
+});

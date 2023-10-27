@@ -3,11 +3,16 @@ import { PersonSlice, createPersonSlice } from "./person.slice";
 import { devtools } from "zustand/middleware";
 import { GuestsSlice, createGuestsSlice } from "./guests.slice";
 import { DateSlice, createDateSlice } from "./date.slice";
+import {
+  ConfirmationSlice,
+  createConfirmationSlice,
+} from "./confirmation.slice";
 
-type BoundState = PersonSlice & GuestsSlice & DateSlice;
+type BoundState = PersonSlice & GuestsSlice & DateSlice & ConfirmationSlice;
+type ZustandMiddlewares = [["zustand/devtools", never]];
 
 const middlewareWrapper = (
-  fn: StateCreator<BoundState, [["zustand/devtools", never]], []>
+  fn: StateCreator<BoundState, ZustandMiddlewares, []>
 ) => devtools(fn, { name: "Wedding" });
 
 export const useWeddingBoundStore = create<BoundState>()(
@@ -15,5 +20,6 @@ export const useWeddingBoundStore = create<BoundState>()(
     ...createPersonSlice(...a),
     ...createGuestsSlice(...a),
     ...createDateSlice(...a),
+    ...createConfirmationSlice(...a),
   }))
 );
